@@ -434,3 +434,45 @@ main,footer{position:relative;z-index:1}
 .live-embedded .live-alt a{text-decoration:underline;text-underline-offset:3px}
 @media(max-width:600px){.booking .book-box{padding:16px 8px}.live-embedded .live-copy,.live-embedded .live-alt{padding-inline:12px}}
 .sq-fallback{padding:2.4rem 0 .4rem}
+
+/* Own booking calendar (live Square availability) */
+.bk-gender{margin-top:.2rem}
+.bk-list{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+.bk-list .hint{grid-column:1/-1}
+.bk-item{position:relative;display:flex;align-items:center;gap:.9rem;padding:.85rem 1rem;border:1px solid var(--line);border-radius:16px;background:var(--white);cursor:pointer;transition:border-color .3s,box-shadow .3s,transform .3s var(--ease);animation:slotIn .45s var(--ease) both}
+.bk-item:hover{border-color:var(--gold);transform:translateY(-1px)}
+.bk-item input{position:absolute;opacity:0;pointer-events:none}
+.bk-box{flex:none;width:22px;height:22px;border-radius:7px;border:1.5px solid var(--gold);display:grid;place-items:center;transition:background .3s}
+.bk-box::after{content:"";width:10px;height:6px;border-left:2px solid var(--white);border-bottom:2px solid var(--white);transform:rotate(-45deg) translate(1px,-1px) scale(0);transition:transform .3s var(--ease)}
+.bk-item.on{border-color:var(--gold);box-shadow:0 10px 24px -16px rgba(142,108,58,.8)}
+.bk-item.on .bk-box{background:var(--gold-deep);border-color:var(--gold-deep)}
+.bk-item.on .bk-box::after{transform:rotate(-45deg) translate(1px,-1px) scale(1)}
+.bk-item input:focus-visible + .bk-box{outline:2px solid var(--gold);outline-offset:3px}
+.bk-name{flex:1;min-width:0;font-size:.93rem;color:var(--ink)}
+.bk-name small{display:block;font-size:.74rem;color:var(--muted)}
+.bk-meta{text-align:right;white-space:nowrap;font-size:.76rem;color:var(--muted)}
+.bk-meta b{display:block;font-family:var(--serif);font-weight:500;font-size:1.2rem;color:var(--gold-deep)}
+.bk-picked{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin-top:1.2rem;padding:1rem 1.2rem;border-radius:16px;background:var(--ink);color:var(--ivory)}
+.bk-picked .tag-x{display:inline-flex;align-items:center;gap:.4rem;font:inherit;font-size:.8rem;padding:.4rem .75rem;border-radius:999px;border:1px solid rgba(230,210,168,.35);background:none;color:var(--ivory);cursor:pointer}
+.bk-picked .tag-x::after{content:"×";color:var(--gold-light)}
+.bk-picked .tot{margin-left:auto;font-size:.8rem;color:#C9B997;letter-spacing:.06em}
+.bk-picked .tot b{font-family:var(--serif);font-weight:500;font-size:1.3rem;color:var(--gold-light);margin-left:.4rem}
+.cal-status{margin-top:.9rem;font-size:.8rem;color:var(--muted);text-align:center;min-height:1.2em}
+.cal.loading .cal-days{opacity:.45;pointer-events:none;transition:opacity .3s}
+.cal.loading .cal-status::before{content:"";display:inline-block;width:10px;height:10px;margin-right:.5rem;border-radius:50%;border:2px solid var(--gold);border-right-color:transparent;animation:spin .8s linear infinite;vertical-align:-1px}
+.bk-error{margin-top:-1rem;padding:.9rem 1.2rem;border-radius:14px;background:rgba(164,71,58,.08);border:1px solid rgba(164,71,58,.3);color:#8A3B30;font-size:.9rem}
+#bkSubmit:disabled{opacity:.4;cursor:default}
+#bkSubmit.busy span:first-child::after{content:"…"}
+.summary #bkSubmit{background:var(--ivory);color:var(--ink);font-family:inherit;border:0;cursor:pointer}
+.bk-done{position:relative;z-index:1;text-align:center;padding:2rem 1rem 1rem;animation:fade .9s var(--ease) both}
+.bk-check{width:84px;height:84px;margin:0 auto 1.4rem}
+.bk-check svg{width:100%;height:100%;fill:none;stroke:var(--gold-deep);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.bk-check circle{stroke-dasharray:151;stroke-dashoffset:151;animation:draw 1s .1s var(--ease) forwards}
+.bk-check path{stroke-dasharray:40;stroke-dashoffset:40;animation:draw .6s .8s var(--ease) forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.bk-done h3{font-size:clamp(2rem,4vw,2.8rem);margin:.8rem 0 .6rem}
+.bk-done p{color:var(--muted);max-width:520px;margin:0 auto .8rem}
+.bk-done .sum-k{color:var(--gold-deep)}
+.bk-done .btn{margin-top:1.2rem;font-family:inherit;cursor:pointer;background:none}
+@media (max-width:600px){.bk-list{grid-template-columns:1fr}.bk-picked .tot{margin-left:0;width:100%}}
+@media (prefers-reduced-motion:reduce){.bk-item{animation:none}.bk-check circle,.bk-check path{stroke-dashoffset:0;animation:none}}

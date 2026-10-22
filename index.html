@@ -300,6 +300,73 @@
 
       <div class="book-box reveal d2">
         <div class="beam" aria-hidden="true"></div>
+        <!-- OWN BOOKING CALENDAR (live Square availability via the booking server) -->
+        <div id="apiFlow" class="flow api-flow" hidden>
+          <div class="book-step">
+            <div class="step-label"><span>1</span>Who is the treatment for?</div>
+            <div class="gender bk-gender" id="bkGender" data-g="0" role="group" aria-label="Treatment for">
+              <span class="g-pill" aria-hidden="true"></span>
+              <button type="button" class="g-btn on" data-g="0" aria-pressed="true">Women</button>
+              <button type="button" class="g-btn" data-g="1" aria-pressed="false">Men</button>
+            </div>
+          </div>
+          <div class="book-step">
+            <div class="step-label"><span>2</span>Choose your areas <small>Select one or more</small></div>
+            <div class="cats" id="bkCats" role="tablist" aria-label="Treatment area"></div>
+            <div class="bk-list" id="bkList"><p class="hint">Loading treatments…</p></div>
+            <div class="bk-picked" id="bkPicked" hidden></div>
+          </div>
+          <div class="book-grid">
+            <div class="book-step">
+              <div class="step-label"><span>3</span>Pick a day</div>
+              <div class="cal">
+                <div class="cal-top">
+                  <button type="button" class="cal-nav" id="bkPrev" aria-label="Previous month">←</button>
+                  <div class="cal-month" id="bkMonth"></div>
+                  <button type="button" class="cal-nav" id="bkNext" aria-label="Next month">→</button>
+                </div>
+                <div class="cal-dow"><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span><span>Su</span></div>
+                <div class="cal-days" id="bkDays"></div>
+                <p class="cal-status" id="bkCalStatus">Choose your areas to see open days.</p>
+              </div>
+            </div>
+            <div class="book-step">
+              <div class="step-label"><span>4</span>Pick a time <small>Pacific Time</small></div>
+              <div class="slots" id="bkSlots"><p class="hint">Choose your areas and a day to see open times.</p></div>
+            </div>
+          </div>
+          <div class="book-step">
+            <div class="step-label"><span>5</span>Your details</div>
+            <div class="fields">
+              <label><span>First name</span><input id="bkFirst" type="text" autocomplete="given-name" placeholder="First name"></label>
+              <label><span>Last name</span><input id="bkLast" type="text" autocomplete="family-name" placeholder="Last name"></label>
+              <label><span>Email</span><input id="bkEmail" type="email" autocomplete="email" placeholder="you@example.com"></label>
+              <label><span>Phone</span><input id="bkPhone" type="tel" autocomplete="tel" placeholder="(818) 555-0123"></label>
+              <label class="full"><span>Note <em>(optional)</em></span><input id="bkNote" type="text" placeholder="e.g. first visit, questions"></label>
+            </div>
+          </div>
+          <div class="summary" id="bkSummary">
+            <div class="sum-text">
+              <span class="sum-k">Your appointment</span>
+              <p id="bkSumLine">Choose your areas, a day and a time.</p>
+            </div>
+            <div class="sum-actions">
+              <button type="button" id="bkSubmit" class="btn btn-gold" disabled><span>Book appointment</span><span class="arrow">→</span></button>
+            </div>
+          </div>
+          <p class="bk-error" id="bkError" role="alert" hidden></p>
+          <p class="book-note">Bookings go straight into our calendar. You'll get a reminder by email the day before your visit.</p>
+        </div>
+
+        <div id="bkDone" class="bk-done" hidden>
+          <div class="bk-check" aria-hidden="true"><svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="24"/><path d="M15 27l7 7 15-16"/></svg></div>
+          <span class="sum-k">You're booked</span>
+          <h3 id="bkDoneWhen"></h3>
+          <p id="bkDoneWhat"></p>
+          <p class="bk-done-note">Your appointment is in our calendar. A reminder will go to <b id="bkDoneEmail"></b> the day before your visit. Need to change something? Call <b>(818) 808-0010</b>.</p>
+          <button type="button" class="btn btn-ghost" id="bkAgain">Book another appointment</button>
+        </div>
+
         <!-- Square Appointments: official embedded booking flow -->
         <div id="liveFlow" class="live live-embedded">
           <div class="live-copy">

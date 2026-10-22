@@ -159,6 +159,201 @@
     el.classList.add('closed'); span.textContent='Closed · opens '+label;
   })();
 
+  // Own booking calendar: live Square availability through the booking server
+  (function(){
+    // ── BOOKING SERVER ─────────────────────────────────────────────
+    // Paste the Cloudflare Worker address here, e.g. 'https://calm-booking.yourname.workers.dev'.
+    // While empty (or if the server can't be reached) the embedded Square booking is shown instead.
+    var API_BASE = 'https://calm-booking.srwyr9jhcn.workers.dev';
+    var apiFlow=document.getElementById('apiFlow'), liveFlow=document.getElementById('liveFlow'), done=document.getElementById('bkDone');
+    if(!API_BASE||!apiFlow) return;
+    API_BASE=API_BASE.replace(/\/$/,'');
+    var TZ='America/Los_Angeles', $=function(id){return document.getElementById(id)};
+    var lead=$('bookLead');
+    function showFallback(){apiFlow.hidden=true;done.hidden=true;if(liveFlow)liveFlow.hidden=false}
+    apiFlow.hidden=false; if(liveFlow) liveFlow.hidden=true;
+    if(lead) lead.textContent="Choose your treatments, pick an open time and book – it goes straight into our calendar.";
+
+    var S=[], byGender=[[],[]], cats=[], state={g:0,cat:null,sel:[],month:null,day:null,slot:null,avail:null,availKey:'',loading:0};
+    function api(path,body){return fetch(API_BASE+path,{method:body?'POST':'GET',headers:body?{'Content-Type':'application/json'}:{},body:body?JSON.stringify(body):undefined})
+      .then(function(r){return r.json().catch(function(){return {}}).then(function(j){if(!r.ok){var e=new Error(j.message||'Request failed');e.code=j.error;e.status=r.status;throw e}return j})})}
+    function norm(s){return String(s).toLowerCase().replace(/&/g,'and').replace(/touch[\s-]*ups?/g,'').replace(/[^a-z0-9]+/g,'')}
+    function laYmd(d){return new Intl.DateTimeFormat('en-CA',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit'}).format(d)}
+    function fmtTime(d){return new Intl.DateTimeFormat('en-US',{timeZone:TZ,hour:'numeric',minute:'2-digit'}).format(d).toLowerCase().replace(' ',' ')}
+    function fmtDay(ymd){var p=ymd.split('-');return new Date(+p[0],+p[1]-1,+p[2]).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}
+    function fmtDur(m){var h=Math.floor(m/60),r=m%60;return (h?h+' h':'')+(h&&r?' ':'')+(r?r+' min':'')}
+    function money(v){return '$'+(Math.round(v)===v?v:v.toFixed(2))}
+    function pad(n){return (n<10?'0':'')+n}
+    var todayYmd=laYmd(new Date()), tp=todayYmd.split('-');
+    var firstMonth=new Date(+tp[0],+tp[1]-1,1), lastMonth=new Date(+tp[0],+tp[1]+1,1);
+    state.month=new Date(firstMonth);
+
+    function classify(){
+      var P=window.CALM_PRICE_LIST||[], map={};
+      P.forEach(function(c){c.r.forEach(function(r){map[norm(r[0]+(r[1]?' '+r[1]:''))]=c.k; if(!map[norm(r[0])]) map[norm(r[0])]=c.k})});
+      var order=P.map(function(c){return {k:c.k,t:c.t.replace(/\s*✦/,'')}});
+      var used={};
+      S.forEach(function(s){
+        var m=s.name.match(/^(.*?)\s*[-–]\s*(women|men)\s*$/i);
+        s.base=m?m[1]:s.name; s.g=m?(m[2].toLowerCase()==='women'?0:1):-1;
+        var parts=s.base.split(/\s+-\s+/); s.title=parts[0]; s.sub=parts.slice(1).join(' – ');
+        s.cat=map[norm(s.base)]||'more'; used[s.cat]=1;
+        if(s.g===-1){byGender[0].push(s);byGender[1].push(s)} else byGender[s.g].push(s);
+      });
+      var rank={},i=0; P.forEach(function(c){c.r.forEach(function(r){var k=norm(r[0]+(r[1]?' '+r[1]:''));if(rank[k]==null)rank[k]=i;i++})});
+      function rk(s){var k=norm(s.base);return rank[k]!=null?rank[k]:999}
+      [0,1].forEach(function(g){byGender[g].sort(function(x,y){return rk(x)-rk(y)||x.base.localeCompare(y.base)})});
+      cats=order.filter(function(c){return used[c.k]}); if(used.more) cats.push({k:'more',t:'More'});
+      state.cat=cats.length?cats[0].k:null;
+    }
+    function renderCats(){
+      var el=$('bkCats'); el.innerHTML='';
+      cats.forEach(function(c){
+        var count=state.sel.filter(function(s){return s.cat===c.k}).length;
+        var b=document.createElement('button');b.type='button';b.className='cat'+(c.k===state.cat?' on':'');b.setAttribute('role','tab');b.setAttribute('aria-selected',c.k===state.cat);
+        b.textContent=c.t+(count?' · '+count:'');b.onclick=function(){state.cat=c.k;renderCats();renderList()};el.appendChild(b);
+      });
+    }
+    function renderList(){
+      var el=$('bkList'); el.innerHTML='';
+      byGender[state.g].filter(function(s){return s.cat===state.cat}).forEach(function(s,i){
+        var on=state.sel.indexOf(s)>-1;
+        var lab=document.createElement('label');lab.className='bk-item'+(on?' on':'');lab.style.animationDelay=(i*30)+'ms';
+        var inp=document.createElement('input');inp.type='checkbox';inp.checked=on;
+        var box=document.createElement('span');box.className='bk-box';
+        var nm=document.createElement('span');nm.className='bk-name';nm.textContent=s.title;
+        if(s.sub){var sm=document.createElement('small');sm.textContent=s.sub;nm.appendChild(sm)}
+        var meta=document.createElement('span');meta.className='bk-meta';
+        var pr=document.createElement('b');pr.textContent=s.price!=null?(s.variablePrice?'from ':'')+money(s.price):'Price at visit';
+        meta.appendChild(pr);meta.appendChild(document.createTextNode(s.duration?fmtDur(s.duration):''));
+        inp.onchange=function(){toggle(s,inp.checked)};
+        lab.appendChild(inp);lab.appendChild(box);lab.appendChild(nm);lab.appendChild(meta);el.appendChild(lab);
+      });
+    }
+    function toggle(s,on){
+      var i=state.sel.indexOf(s);
+      if(on&&i<0){ if(state.sel.length>=6){showError('You can book up to 6 treatments in one appointment.');renderList();return} state.sel.push(s) }
+      if(!on&&i>-1) state.sel.splice(i,1);
+      hideError(); afterSelection();
+    }
+    function afterSelection(){renderCats();renderList();renderPicked();state.slot=null;loadAvailability();update()}
+    function totals(){var d=0,p=0,from=false;state.sel.forEach(function(s){d+=s.duration||0;if(s.price!=null)p+=s.price;if(s.variablePrice||s.price==null)from=true});return {d:d,p:p,from:from}}
+    function renderPicked(){
+      var el=$('bkPicked'); el.innerHTML=''; el.hidden=!state.sel.length; if(!state.sel.length) return;
+      state.sel.forEach(function(s){var b=document.createElement('button');b.type='button';b.className='tag-x';b.textContent=s.base;b.setAttribute('aria-label','Remove '+s.base);b.onclick=function(){toggle(s,false)};el.appendChild(b)});
+      var t=totals(),tot=document.createElement('span');tot.className='tot';tot.textContent=fmtDur(t.d);
+      var b=document.createElement('b');b.textContent=(t.from?'from ':'')+money(t.p);tot.appendChild(b);el.appendChild(tot);
+    }
+    // gender switch keeps equivalent treatments selected
+    var gEl=$('bkGender');
+    gEl.querySelectorAll('.g-btn').forEach(function(btn){btn.onclick=function(){
+      var g=+btn.dataset.g; if(g===state.g) return; state.g=g; gEl.dataset.g=g;
+      gEl.querySelectorAll('.g-btn').forEach(function(x){var on=x===btn;x.classList.toggle('on',on);x.setAttribute('aria-pressed',on)});
+      state.sel=state.sel.map(function(s){return s.g===-1?s:byGender[g].filter(function(x){return x.base===s.base})[0]}).filter(Boolean);
+      afterSelection();
+    }});
+
+    // calendar
+    function monthRange(){
+      var y=state.month.getFullYear(),m=state.month.getMonth()+1,last=new Date(y,m,0).getDate();
+      var from=y+'-'+pad(m)+'-01'; if(from<todayYmd) from=todayYmd;
+      return {from:from,to:y+'-'+pad(m)+'-'+pad(last)};
+    }
+    var timer=null, reqId=0;
+    function loadAvailability(){
+      clearTimeout(timer);
+      if(!state.sel.length){state.avail=null;state.availKey='';renderCal();renderSlots();setCalStatus('Choose your areas to see open days.');return}
+      var rg=monthRange(), ids=state.sel.map(function(s){return s.id}), key=ids.join(',')+'|'+rg.from;
+      if(key===state.availKey){renderCal();renderSlots();return}
+      timer=setTimeout(function(){
+        var my=++reqId; $('bkDays').parentNode.classList.add('loading'); setCalStatus('Checking open times…');
+        api('/availability',{from:rg.from,to:rg.to,serviceIds:ids}).then(function(j){
+          if(my!==reqId) return;
+          var by={}; (j.slots||[]).forEach(function(s){var d=laYmd(new Date(s.startAt));(by[d]=by[d]||[]).push(s)});
+          state.avail=by; state.availKey=key;
+          var n=Object.keys(by).length;
+          setCalStatus(n?n+' day'+(n>1?'s':'')+' with open times this month':'No open times this month – try the next month.');
+          if(state.day&&!by[state.day]){state.day=null;state.slot=null}
+          renderCal();renderSlots();update();
+        }).catch(function(e){ if(my!==reqId) return; setCalStatus(''); showError(e.message||'Could not load open times. Please try again.'); })
+          .then(function(){ if(my===reqId) $('bkDays').parentNode.classList.remove('loading') });
+      },250);
+    }
+    function setCalStatus(t){$('bkCalStatus').textContent=t}
+    function renderCal(){
+      var y=state.month.getFullYear(),m=state.month.getMonth();
+      $('bkMonth').textContent=state.month.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+      $('bkPrev').disabled=state.month<=firstMonth; $('bkNext').disabled=state.month>=lastMonth;
+      var el=$('bkDays'); el.innerHTML='';
+      var first=(new Date(y,m,1).getDay()+6)%7, n=new Date(y,m+1,0).getDate();
+      for(var i=0;i<first;i++){var e=document.createElement('span');e.className='day empty';el.appendChild(e)}
+      for(var d=1;d<=n;d++){(function(d){
+        var ymd=y+'-'+pad(m+1)+'-'+pad(d), b=document.createElement('button'), has=!!(state.avail&&state.avail[ymd]);
+        b.type='button';b.className='day'+(has?' has-slots':'')+(ymd===todayYmd?' today':'')+(ymd===state.day?' on':'');b.textContent=d;b.style.animationDelay=(d*10)+'ms';
+        b.disabled=!has; b.setAttribute('aria-label',fmtDay(ymd)+(has?'':' – no open times'));
+        b.onclick=function(){state.day=ymd;state.slot=null;hideError();renderCal();renderSlots();update()};
+        el.appendChild(b)})(d)}
+    }
+    $('bkPrev').onclick=function(){state.month=new Date(state.month.getFullYear(),state.month.getMonth()-1,1);state.day=null;state.slot=null;loadAvailability();renderCal();renderSlots();update()};
+    $('bkNext').onclick=function(){state.month=new Date(state.month.getFullYear(),state.month.getMonth()+1,1);state.day=null;state.slot=null;loadAvailability();renderCal();renderSlots();update()};
+    function renderSlots(){
+      var el=$('bkSlots'); el.innerHTML='';
+      if(!state.sel.length||!state.day){var p=document.createElement('p');p.className='hint';p.textContent=state.sel.length?'Pick a day to see open times.':'Choose your areas and a day to see open times.';el.appendChild(p);return}
+      var t=document.createElement('div');t.className='day-title';t.textContent=fmtDay(state.day);
+      var sm=document.createElement('small');sm.textContent=fmtDur(totals().d)+' appointment';t.appendChild(sm);el.appendChild(t);
+      (state.avail&&state.avail[state.day]||[]).forEach(function(s,i){
+        var st=new Date(s.startAt), mins=s.segments.reduce(function(a,x){return a+(x.duration||0)},0);
+        var b=document.createElement('button');b.type='button';b.className='slot'+(state.slot===s?' on':'');b.style.animationDelay=(i*25)+'ms';
+        b.textContent=fmtTime(st); var u=document.createElement('small');u.textContent='until '+fmtTime(new Date(st.getTime()+mins*60000));b.appendChild(u);
+        b.onclick=function(){state.slot=s;el.querySelectorAll('.slot').forEach(function(x){x.classList.remove('on')});b.classList.add('on');hideError();update()};
+        el.appendChild(b);
+      });
+    }
+    // details + submit
+    var F={first:$('bkFirst'),last:$('bkLast'),email:$('bkEmail'),phone:$('bkPhone'),note:$('bkNote')};
+    Object.keys(F).forEach(function(k){F[k].addEventListener('input',update)});
+    function valid(){return state.sel.length&&state.slot&&F.first.value.trim()&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(F.email.value.trim())&&F.phone.value.replace(/\D/g,'').length>=10}
+    function update(){
+      var parts=[];
+      if(state.sel.length) parts.push(state.sel.map(function(s){return s.base}).join(' + '));
+      if(state.day) parts.push(fmtDay(state.day));
+      if(state.slot){var st=new Date(state.slot.startAt);parts.push(fmtTime(st)+' – '+fmtTime(new Date(st.getTime()+totals().d*60000)))}
+      if(state.sel.length){var t=totals();parts.push((t.from?'from ':'')+money(t.p))}
+      $('bkSumLine').textContent=parts.length?parts.join(' · '):'Choose your areas, a day and a time.';
+      $('bkSubmit').disabled=!valid();
+    }
+    function showError(t){var e=$('bkError');e.textContent=t;e.hidden=false}
+    function hideError(){$('bkError').hidden=true}
+    $('bkSubmit').onclick=function(){
+      if(!valid()) return; var btn=this; btn.disabled=true; btn.classList.add('busy'); btn.firstChild.textContent='Booking'; hideError();
+      var slot=state.slot, sel=state.sel.slice(), email=F.email.value.trim();
+      api('/book',{startAt:slot.startAt,serviceIds:sel.map(function(s){return s.id}),note:F.note.value.trim(),
+        customer:{firstName:F.first.value.trim(),lastName:F.last.value.trim(),email:email,phone:F.phone.value.trim()}})
+      .then(function(j){
+        var st=new Date((j.booking&&j.booking.startAt)||slot.startAt), t=totals();
+        $('bkDoneWhen').textContent=fmtDay(laYmd(st))+' at '+fmtTime(st);
+        $('bkDoneWhat').textContent=sel.map(function(s){return s.base}).join(' + ')+' · '+fmtDur(t.d)+' · '+(t.from?'from ':'')+money(t.p);
+        $('bkDoneEmail').textContent=email;
+        apiFlow.hidden=true; done.hidden=false; done.scrollIntoView({behavior:'smooth',block:'center'});
+      })
+      .catch(function(e){
+        if(e.code==='SLOT_TAKEN'){state.slot=null;state.availKey='';loadAvailability()}
+        showError((e.message||'Booking failed.')+(e.code==='SLOT_TAKEN'?'':' You can also call us at (818) 808-0010.'));
+      })
+      .then(function(){btn.classList.remove('busy');btn.firstChild.textContent='Book appointment';update()});
+    };
+    $('bkAgain').onclick=function(){
+      state.sel=[];state.day=null;state.slot=null;state.availKey='';F.note.value='';
+      done.hidden=true;apiFlow.hidden=false;afterSelection();renderCal();
+    };
+
+    renderCal();
+    api('/services').then(function(j){
+      S=j.services||[]; if(!S.length) throw new Error('No services');
+      classify(); renderCats(); renderList(); update();
+    }).catch(function(){ showFallback(); });
+  })();
+
   // Pricing (from the studio's price list)
   (function(){
     var P=[
@@ -184,6 +379,7 @@
         ['Full body','Calm Laser Special',450,500]]}
     ];
     var SPECIAL=[450,500];
+    window.CALM_PRICE_LIST=P;
     var cats=document.getElementById('cats'),list=document.getElementById('plist'),gender=document.querySelector('.gender');
     if(!cats||!list) return;
     var g=0,cur=P[0].k;
