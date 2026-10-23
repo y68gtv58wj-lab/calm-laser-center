@@ -328,7 +328,7 @@
     $('bkSubmit').onclick=function(){
       if(!valid()) return; var btn=this; btn.disabled=true; btn.classList.add('busy'); btn.firstChild.textContent='Booking'; hideError();
       var slot=state.slot, sel=state.sel.slice(), email=F.email.value.trim();
-      var agreed='Agreed online to Terms of Service & Privacy Policy (incl. 24h cancellation).', userNote=F.note.value.trim();
+      var agreed='Agreed online to Terms of Service & Privacy Policy (incl. 24h cancellation, no refunds, skin reactions).', userNote=F.note.value.trim();
       api('/book',{startAt:slot.startAt,serviceIds:sel.map(function(s){return s.id}),note:(userNote?userNote+' | ':'')+agreed,
         customer:{firstName:F.first.value.trim(),lastName:F.last.value.trim(),email:email,phone:F.phone.value.trim()}})
       .then(function(j){
