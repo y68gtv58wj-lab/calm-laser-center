@@ -310,9 +310,10 @@
       });
     }
     // details + submit
-    var F={first:$('bkFirst'),last:$('bkLast'),email:$('bkEmail'),phone:$('bkPhone'),note:$('bkNote')};
+    var F={first:$('bkFirst'),last:$('bkLast'),email:$('bkEmail'),phone:$('bkPhone'),note:$('bkNote')}, consent=$('bkConsent');
     Object.keys(F).forEach(function(k){F[k].addEventListener('input',update)});
-    function valid(){return state.sel.length&&state.slot&&F.first.value.trim()&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(F.email.value.trim())&&F.phone.value.replace(/\D/g,'').length>=10}
+    consent.addEventListener('change',update);
+    function valid(){return state.sel.length&&state.slot&&F.first.value.trim()&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(F.email.value.trim())&&F.phone.value.replace(/\D/g,'').length>=10&&consent.checked}
     function update(){
       var parts=[];
       if(state.sel.length) parts.push(state.sel.map(function(s){return s.base}).join(' + '));
@@ -327,7 +328,8 @@
     $('bkSubmit').onclick=function(){
       if(!valid()) return; var btn=this; btn.disabled=true; btn.classList.add('busy'); btn.firstChild.textContent='Booking'; hideError();
       var slot=state.slot, sel=state.sel.slice(), email=F.email.value.trim();
-      api('/book',{startAt:slot.startAt,serviceIds:sel.map(function(s){return s.id}),note:F.note.value.trim(),
+      var agreed='Agreed online to Terms of Service & Privacy Policy (incl. 24h cancellation).', userNote=F.note.value.trim();
+      api('/book',{startAt:slot.startAt,serviceIds:sel.map(function(s){return s.id}),note:(userNote?userNote+' | ':'')+agreed,
         customer:{firstName:F.first.value.trim(),lastName:F.last.value.trim(),email:email,phone:F.phone.value.trim()}})
       .then(function(j){
         var st=new Date((j.booking&&j.booking.startAt)||slot.startAt), t=totals();
