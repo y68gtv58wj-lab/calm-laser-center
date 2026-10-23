@@ -6,7 +6,7 @@
   addEventListener('scroll', function(){ nav.classList.toggle('scrolled', scrollY > 30); }, {passive:true});
 
   // Mobile menu
-  document.querySelector('.burger').addEventListener('click', function(){ document.body.classList.toggle('menu-open'); });
+  document.querySelector('.burger').addEventListener('click', function(){ var m=document.querySelector('.mobile-menu'); if(m) m.style.paddingTop=(nav.getBoundingClientRect().bottom+24)+'px'; document.body.classList.toggle('menu-open'); });
   document.querySelectorAll('.mobile-menu a').forEach(function(a){ a.addEventListener('click', function(){ document.body.classList.remove('menu-open'); }); });
 
   // Reveal on scroll + counters

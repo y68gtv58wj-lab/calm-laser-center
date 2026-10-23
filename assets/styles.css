@@ -524,3 +524,9 @@ main,footer{position:relative;z-index:1}
 .fields label.consent input:focus-visible + .consent-box{outline:2px solid var(--gold);outline-offset:3px}
 .fields label.consent .consent-text{font-size:.92rem;letter-spacing:0;text-transform:none;font-weight:400;color:var(--ink);line-height:1.5}
 .fields label.consent .consent-text a{color:var(--gold-deep);text-decoration:underline;text-underline-offset:3px}
+
+/* Mobile menu starts below the logo bar */
+.mobile-menu{justify-content:flex-start;padding-top:210px;padding-bottom:40px;gap:.4rem;overflow-y:auto}
+.mobile-menu a{font-size:clamp(2rem,6vw,2.6rem);line-height:1.25}
+body.menu-open{overflow:hidden}
+@media (max-width:600px){.mobile-menu{padding-top:150px}}
