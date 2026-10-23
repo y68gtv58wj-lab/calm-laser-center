@@ -359,7 +359,7 @@
     var P=[
       {k:'face',t:'Face & Neck',r:[
         ['Full face & front of neck','',75,140],['Full face','neck not included',50,65],['Partial face','forehead & neck not included',40,55],
-        ['Front or back of neck','',30,60],['Hairline','',25,50],['Lip','',35,45],['Chin','',35,45],['Lip & chin','',35,60],
+        ['Front or back of neck','',30,60],['Hairline','',25,50],['Lip','',25,35],['Chin','',25,35],['Lip & chin','',40,50],
         ['Cheeks','',30,60],['Sideburns','',20,50],['Between eyebrows','',20,35],['Ears','',20,35],['Nostril','',20,35]]},
       {k:'arms',t:'Arms',r:[
         ['Full arms','',90,120],['Upper arms','shoulders not included',65,75],['Upper arms','shoulders included',85,90],
