@@ -481,3 +481,35 @@ main,footer{position:relative;z-index:1}
 .foot-bottom a:hover{color:var(--ink)}
 
 .slide--low img{object-position:50% 85%}
+
+/* Technology – Candela GentleLase Pro-U */
+.tech{background:var(--ink);color:var(--ivory);position:relative;overflow:hidden}
+.tech::before{content:"";position:absolute;width:760px;height:760px;border-radius:50%;background:radial-gradient(circle,rgba(184,147,90,.22),transparent 65%);top:-320px;left:-260px;pointer-events:none}
+.tech-grid{display:grid;grid-template-columns:.85fr 1.15fr;gap:clamp(2.4rem,6vw,5rem);align-items:center;position:relative}
+.tech-visual{position:relative;max-width:440px;width:100%;aspect-ratio:576/798;border-radius:28px;overflow:hidden;border:1px solid rgba(230,210,168,.3);box-shadow:0 40px 80px -40px rgba(0,0,0,.7);justify-self:center}
+.tech-visual img{width:100%;height:100%;object-fit:cover;display:block;filter:saturate(.85) sepia(.12) contrast(1.04)}
+.tech-scan{position:absolute;left:0;right:0;height:2px;top:20%;background:linear-gradient(90deg,transparent,var(--gold-light),#fff,var(--gold-light),transparent);box-shadow:0 0 18px 3px rgba(230,210,168,.8);animation:techScan 4.5s var(--ease) infinite}
+@keyframes techScan{0%{top:12%;opacity:0}15%{opacity:1}55%{top:86%;opacity:1}70%{opacity:0}100%{top:12%;opacity:0}}
+.tech-badge{position:absolute;right:16px;bottom:16px;display:inline-flex;align-items:center;gap:.55rem;padding:.6rem 1rem;border-radius:999px;background:rgba(35,30,23,.82);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(230,210,168,.35);font-family:var(--serif);font-size:1.3rem;color:var(--gold-light);animation:float 6s ease-in-out infinite}
+.tech-badge i{width:8px;height:8px;border-radius:50%;background:var(--gold);box-shadow:0 0 10px 3px rgba(201,165,106,.6);animation:pulse 2.4s ease-in-out infinite}
+.tech-copy{min-width:0}
+.tech .eyebrow{color:var(--gold-light)}
+.tech h2{margin:1.2rem 0 1.2rem;color:var(--ivory);text-wrap:balance}
+.tech-lead{color:#D9CFBE;max-width:540px;font-size:1.05rem;margin-bottom:2rem}
+.tech-features{list-style:none;display:grid;gap:1.2rem;margin-bottom:2.2rem}
+.tech-features li{display:flex;gap:1rem;align-items:flex-start}
+.tf-icon{flex:none;width:44px;height:44px;border-radius:12px;border:1px solid rgba(230,210,168,.35);display:grid;place-items:center;color:var(--gold-light)}
+.tf-icon svg{width:24px;height:24px}
+.tech-features h3{font-size:1.35rem;color:var(--ivory);margin-bottom:.25rem}
+.tech-features p{color:#C9B997;font-size:.92rem;max-width:480px}
+.tech-specs{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid rgba(230,210,168,.25);border-radius:18px;overflow:hidden;margin-bottom:1.6rem}
+.tech-specs div{padding:1rem 1.1rem;border-right:1px solid rgba(230,210,168,.18);border-bottom:1px solid rgba(230,210,168,.18)}
+.tech-specs div:nth-child(3n){border-right:0}
+.tech-specs div:nth-last-child(-n+3){border-bottom:0}
+.tech-specs dt{font-size:.64rem;letter-spacing:.2em;text-transform:uppercase;color:#C9B997;margin-bottom:.35rem}
+.tech-specs dd{font-family:var(--serif);font-size:1.35rem;color:var(--ivory);font-variant-numeric:tabular-nums}
+.tech-note{font-size:.88rem;color:#C9B997}
+.tech-note a{color:var(--gold-light);text-decoration:underline;text-underline-offset:3px}
+@media (max-width:980px){.tech-grid{grid-template-columns:1fr}.tech-visual{max-width:380px}}
+@media (max-width:600px){.tech-specs{grid-template-columns:repeat(2,1fr)}.tech-specs div:nth-child(3n){border-right:1px solid rgba(230,210,168,.18)}.tech-specs div:nth-child(2n){border-right:0}.tech-specs div:nth-last-child(-n+3){border-bottom:1px solid rgba(230,210,168,.18)}.tech-specs div:nth-last-child(-n+2){border-bottom:0}}
+@media (prefers-reduced-motion:reduce){.tech-scan{display:none}}
