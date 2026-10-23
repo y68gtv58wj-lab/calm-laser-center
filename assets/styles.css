@@ -479,3 +479,5 @@ main,footer{position:relative;z-index:1}
 
 .book-note a,.foot-bottom a{text-decoration:underline;text-underline-offset:3px}
 .foot-bottom a:hover{color:var(--ink)}
+
+.slide--low img{object-position:50% 85%}
