@@ -319,7 +319,17 @@
     // ── payment ───────────────────────────────────────────────────
     var PAY={cfg:null,method:null,payments:null,card:null,req:null,apple:null,gpay:null,busy:false};
     var payBtns=[].slice.call(document.querySelectorAll('#bkPayMethods .pay-m'));
-    function amountStr(){return totals().p.toFixed(2)}
+    function pct(){var v=PAY.cfg&&+PAY.cfg.depositPercent;return v>=1&&v<=100?v:30}
+    function depositOf(total){var c=Math.round(total*100);return Math.max(1,Math.round(c*pct()/100))/100}
+    function dep(){var t=totals().p;var d=depositOf(t);return {total:t,deposit:d,balance:Math.round((t-d)*100)/100}}
+    function amountStr(){return dep().deposit.toFixed(2)}
+    function renderDepInfo(){
+      var el=$('bkDepInfo'); if(!el) return;
+      if(!state.sel.length){el.hidden=true;return}
+      var d=dep(); el.hidden=false; el.innerHTML='';
+      function cell(k,v,cls){var c=document.createElement('div');c.className='dep-cell'+(cls?' '+cls:'');var a=document.createElement('span');a.textContent=k;var b=document.createElement('b');b.textContent=v;c.appendChild(a);c.appendChild(b);el.appendChild(c)}
+      cell('Total',money(d.total)); cell(pct()>=100?'Due today':'Deposit today ('+pct()+'%)',money(d.deposit),'on'); if(pct()<100) cell('At your visit',money(d.balance));
+    }
     function setMethod(m){
       PAY.method=m;
       payBtns.forEach(function(b){var on=b.dataset.m===m;b.classList.toggle('on',on);b.setAttribute('aria-checked',on)});
@@ -331,7 +341,7 @@
     function syncPay(){
       if(PAY.method==='zelle'||PAY.method==='venmo'){
         var mc=manualCfg(PAY.method), box=$('bkPayManual');
-        box.querySelector('.js-amt').textContent=state.sel.length?money(totals().p):'the total';
+        box.querySelector('.js-amt').textContent=state.sel.length?money(dep().deposit)+' deposit':'the deposit';
         box.querySelector('.js-m').textContent=PAY.method==='zelle'?'Zelle':'Venmo';
         box.querySelector('.js-to').textContent=mc.to;
         box.querySelector('.js-h').textContent=mc.hours+(mc.hours===1?' hour':' hours');
@@ -383,13 +393,14 @@
       if(state.slot){var st=new Date(state.slot.startAt);parts.push(fmtTime(st)+' – '+fmtTime(new Date(st.getTime()+totals().d*60000)))}
       if(state.sel.length){var t=totals();parts.push((t.from?'from ':'')+money(t.p))}
       $('bkSumLine').textContent=parts.length?parts.join(' · '):'Choose your areas, a day and a time.';
+      renderDepInfo();
       var sb=$('bkSubmit'); sb.disabled=!valid();
       if(!sb.classList.contains('busy')) sb.firstChild.textContent=submitLabel();
       syncPay();
     }
     function submitLabel(){
-      var amt=state.sel.length?' '+money(totals().p):'';
-      if(PAY.method==='card') return 'Pay'+amt+' & book';
+      var amt=state.sel.length?' '+money(dep().deposit):'';
+      if(PAY.method==='card') return 'Pay'+amt+(pct()<100?' deposit':'')+' & book';
       if(PAY.method==='zelle') return 'Book & pay with Zelle';
       if(PAY.method==='venmo') return 'Book & pay with Venmo';
       return 'Book appointment';
@@ -413,8 +424,8 @@
     };
     function submit(payment){
       var btn=$('bkSubmit'); PAY.busy=true; btn.disabled=true; btn.classList.add('busy'); btn.firstChild.textContent=payment.method==='card'?'Paying':'Booking'; hideError();
-      var slot=state.slot, sel=state.sel.slice(), email=F.email.value.trim(), t0=totals();
-      var agreed='Agreed online to Terms of Service & Privacy Policy (incl. payment terms, 24h cancellation, no refunds) and accepted: treatment risks, informed consent, release of liability & no refunds (Terms §4-6, version 2026-10-23).', userNote=F.note.value.trim();
+      var slot=state.slot, sel=state.sel.slice(), email=F.email.value.trim(), t0=totals(), d0=dep();
+      var agreed='Agreed online to Terms of Service & Privacy Policy (incl. 30% deposit, deposit refunded only if cancelled 24h+ in advance, no refunds for performed treatments) and accepted: treatment risks, informed consent, release of liability & no refunds (Terms §4-6, version 2026-10-23).', userNote=F.note.value.trim();
       api('/book',{startAt:slot.startAt,serviceIds:sel.map(function(s){return s.id}),note:(userNote?userNote+' | ':'')+agreed,payment:payment,
         customer:{firstName:F.first.value.trim(),lastName:F.last.value.trim(),email:email,phone:F.phone.value.trim()}})
       .then(function(j){
@@ -422,7 +433,9 @@
         $('bkDoneWhen').textContent=fmtDay(laYmd(st))+' at '+fmtTime(st);
         $('bkDoneWhat').textContent=sel.map(function(s){return s.base}).join(' + ')+' · '+fmtDur(t0.d)+' · '+money(t0.p);
         $('bkDoneEmail').textContent=email;
-        renderDonePay(j.payment||{method:payment.method,status:payment.method==='card'?'paid':'pending',amount:t0.p});
+        var pj=j.payment||{method:payment.method,status:payment.method==='card'?'paid':'pending',amount:d0.deposit};
+        pj.total=j.total!=null?j.total:d0.total; pj.balance=j.balance!=null?j.balance:d0.balance;
+        renderDonePay(pj);
         apiFlow.hidden=true; done.hidden=false; done.scrollIntoView({behavior:'smooth',block:'start'});
         if(PAY.card){try{PAY.card.clear&&PAY.card.clear()}catch(e){}}
       })
@@ -437,22 +450,26 @@
       function el(tag,txt,cls){var e=document.createElement(tag);if(txt!=null)e.textContent=txt;if(cls)e.className=cls;return e}
       if(p.status==='paid'){
         box.classList.add('paid');
-        var p1=el('p'); p1.appendChild(el('b','Paid '+money(p.amount))); p1.appendChild(document.createTextNode(' by card – thank you!'));
+        var p1=el('p'); p1.appendChild(el('b',(p.balance>0?'Deposit of ':'Paid ')+money(p.amount)+(p.balance>0?' paid':''))); p1.appendChild(document.createTextNode(' by card – thank you!'));
         if(p.receiptUrl){p1.appendChild(document.createTextNode(' ')); var a=el('a','View receipt'); a.href=p.receiptUrl; a.target='_blank'; a.rel='noopener'; p1.appendChild(a)}
-        box.appendChild(p1); return;
+        box.appendChild(p1);
+        if(p.balance>0){var p2=el('p');p2.appendChild(document.createTextNode('Remaining '));p2.appendChild(el('b',money(p.balance)));p2.appendChild(document.createTextNode(' is paid at the studio by card, Apple Pay, Google Pay, Zelle or Venmo – no cash.'));box.appendChild(p2)}
+        var p3=el('p');p3.textContent='Cancel at least 24 hours in advance and your deposit is refunded. For later cancellations or missed appointments the deposit is non-refundable.';box.appendChild(p3);
+        return;
       }
       var label=p.method==='venmo'?'Venmo':'Zelle', mc=manualCfg(p.method), to=p.to||mc.to, hours=p.hours||mc.hours;
-      box.appendChild(el('h4','Next step: send your payment via '+label));
+      box.appendChild(el('h4','Next step: send your deposit via '+label));
       function row(k,v,copy){var r=el('div',null,'pay-row');r.appendChild(el('span',k));r.appendChild(el('b',v));
         if(copy){var c=el('button','Copy','copy-btn');c.type='button';c.onclick=function(){var done=function(){c.textContent='Copied';setTimeout(function(){c.textContent='Copy'},1600)};
           if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(copy).then(done,function(){});}; r.appendChild(c)}
         box.appendChild(r)}
-      row('Amount',money(p.amount),String(p.amount));
+      row('Deposit',money(p.amount),String(p.amount));
       row(label+' to',to,to.replace(/[^\d+@\w.-]/g,''));
       if(p.ref) row('Memo',p.ref,p.ref);
       var n=el('p'); n.appendChild(document.createTextNode('Please send the payment '));n.appendChild(el('b','within '+hours+(hours===1?' hour':' hours')));
       n.appendChild(document.createTextNode(' and add '+(p.ref?'your booking number':'your name and appointment date')+' as the memo. If we don\u2019t receive it in time, your appointment may be cancelled.'));
       box.appendChild(n);
+      if(p.balance>0){var n2=el('p');n2.appendChild(document.createTextNode('Remaining '));n2.appendChild(el('b',money(p.balance)));n2.appendChild(document.createTextNode(' is paid at the studio – no cash. Cancel at least 24 hours in advance and your deposit is refunded; otherwise it is non-refundable.'));box.appendChild(n2)}
     }
     $('bkAgain').onclick=function(){
       state.sel=[];state.day=null;state.slot=null;state.availKey='';F.note.value='';$('bkDonePay').hidden=true;

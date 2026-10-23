@@ -566,3 +566,13 @@ body.menu-open{overflow:hidden}
 .done-pay .pay-row b{white-space:nowrap}
 #bkDone{scroll-margin-top:150px}
 @media (max-width:600px){#bkDone{scroll-margin-top:100px}.done-pay .pay-row{gap:.6rem}}
+
+/* Deposit breakdown */
+.dep-info{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin:-.2rem 0 1.1rem}
+.dep-info[hidden]{display:none}
+.dep-cell{border:1px solid var(--line);border-radius:14px;background:var(--white);padding:.7rem .9rem;display:flex;flex-direction:column;gap:.15rem}
+.dep-cell span{font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.dep-cell b{font-family:var(--serif);font-size:1.45rem;font-weight:500;color:var(--ink)}
+.dep-cell.on{border-color:var(--gold);background:linear-gradient(180deg,#fff,rgba(230,210,168,.2))}
+.dep-cell.on b{color:var(--gold-deep)}
+@media (max-width:600px){.dep-info{grid-template-columns:1fr 1fr}.dep-cell.on{grid-column:1/-1;order:-1}}
