@@ -59,7 +59,7 @@
  ],
  "priceRange": "$20–$500",
  "currenciesAccepted": "USD",
- "paymentAccepted": "Credit Card, Apple Pay, Zelle, Venmo",
+ "paymentAccepted": "Credit Card, Debit Card, Apple Pay, Google Pay, Zelle, Venmo",
  "hasMap": "https://www.google.com/maps/search/?api=1&query=4419+Van+Nuys+Blvd+Ste+411+Sherman+Oaks+CA+91403",
  "sameAs": [
   "https://www.instagram.com/calm_lasercenter/"
@@ -178,7 +178,7 @@
         <p class="reveal d2">At Calm Laser Center in Sherman Oaks we believe great results start with feeling at ease. Every client gets a personal plan that fits their skin, their hair type and their goals.</p>
         <p class="reveal d2">We work with current laser technology and take the time to explain every step – no rush, no pressure, just honest advice.</p>
         <div class="pill-row reveal d3">
-          <span class="pill">Personal care</span><span class="pill">Current technology</span><span class="pill">Parking available</span><span class="pill">Free Wi-Fi</span><span class="pill">Card, Apple Pay, Zelle &amp; Venmo</span>
+          <span class="pill">Personal care</span><span class="pill">Current technology</span><span class="pill">Parking available</span><span class="pill">Free Wi-Fi</span><span class="pill">Cashless: Card, Apple &amp; Google Pay, Zelle, Venmo</span>
         </div>
       </div>
     </div>
@@ -312,7 +312,7 @@
         <div class="price-main reveal d1">
           <div class="cats" id="cats" role="tablist" aria-label="Treatment area"></div>
           <ul class="plist" id="plist" aria-live="polite"></ul>
-          <p class="pnote">All prices in USD, per session. Prices are subject to change without notice. Not sure which area fits you? We'll help you choose at your visit.</p>
+          <p class="pnote">All prices in USD, per session. Prices are subject to change without notice. The full price is paid online when you book – card, Apple Pay, Google Pay, Zelle or Venmo. We do not accept cash. Not sure which area fits you? We'll help you choose at your visit.</p>
         </div>
         <aside class="special reveal d2">
           <div class="beam" aria-hidden="true"></div>
@@ -351,7 +351,7 @@
           <div><h4>Address</h4><p>4419 Van Nuys Blvd, Ste 411<br>Sherman Oaks, CA 91403</p></div>
           <div><h4>Phone &amp; email</h4><p><a href="tel:+18188080010">(818) 808-0010</a><br><a href="mailto:info@calmlasercenter.com">info@calmlasercenter.com</a></p></div>
           <div><h4>Hours</h4><p>Mon – Fri · 10am – 6pm<br>Sat · 10am – 4pm<br>Sun · Closed</p></div>
-          <div><h4>Payment &amp; on site</h4><p>Credit card · Apple Pay<br>Zelle · Venmo<br>Parking · Free Wi-Fi</p></div>
+          <div><h4>Payment &amp; on site</h4><p>Paid online when you book:<br>Card · Apple Pay · Google Pay<br>Zelle · Venmo · <b>no cash</b><br>Parking · Free Wi-Fi</p></div>
         </div>
         <a href="https://www.google.com/maps/dir/?api=1&destination=4419+Van+Nuys+Blvd+Ste+411+Sherman+Oaks+CA+91403" target="_blank" rel="noopener" class="btn btn-light reveal d3"><span>Get directions</span><span class="arrow">→</span></a>
       </div>
@@ -396,11 +396,11 @@
         </div>
         <div class="faq-item">
           <button class="faq-q">How can I pay?<span class="plus"></span></button>
-          <div class="faq-a"><div><p>We accept credit cards, Apple Pay, Zelle and Venmo. All prices are per session and may change without notice. Payments for sessions that have been performed are non-refundable.</p></div></div>
+          <div class="faq-a"><div><p>The full price is paid when you book online – by credit or debit card, Apple Pay or Google Pay, or via Zelle or Venmo to (818) 808-0010 (please send Zelle and Venmo payments within 2 hours of booking, with your booking number as the memo). <b>We do not accept cash.</b> All prices are per session and may change without notice. Payments for sessions that have been performed are non-refundable.</p></div></div>
         </div>
         <div class="faq-item">
           <button class="faq-q">What is your cancellation policy?<span class="plus"></span></button>
-          <div class="faq-a"><div><p>Please cancel or reschedule at least 24 hours before your appointment – by phone, text or email – so we can offer the time to another client.</p></div></div>
+          <div class="faq-a"><div><p>Please cancel or reschedule at least 24 hours before your appointment – by phone, text or email – so we can offer the time to another client. If you cancel in time, your payment is moved to your new appointment or refunded in full. Payments for late cancellations (less than 24 hours) and missed appointments are non-refundable.</p></div></div>
         </div>
       </div>
     </div>
@@ -460,7 +460,28 @@
               <label><span>Email</span><input id="bkEmail" type="email" autocomplete="email" placeholder="you@example.com"></label>
               <label><span>Phone</span><input id="bkPhone" type="tel" autocomplete="tel" placeholder="(818) 555-0123"></label>
               <label class="full"><span>Note <em>(optional)</em></span><input id="bkNote" type="text" placeholder="e.g. first visit, questions"></label>
-              <label class="full consent" for="bkConsent"><input id="bkConsent" type="checkbox"><span class="consent-box" aria-hidden="true"></span><span class="consent-text">I agree to the <a href="terms.html" target="_blank" rel="noopener">Terms of Service</a> and <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>, including the 24-hour cancellation policy, the no-refund policy and the information on possible skin reactions.</span></label>
+              <label class="full consent" for="bkConsent"><input id="bkConsent" type="checkbox"><span class="consent-box" aria-hidden="true"></span><span class="consent-text">I agree to the <a href="terms.html" target="_blank" rel="noopener">Terms of Service</a> and <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>, including the payment terms, the 24-hour cancellation policy, the no-refund policy and the information on possible skin reactions.</span></label>
+            </div>
+          </div>
+          <div class="book-step" id="bkPayStep">
+            <div class="step-label"><span>6</span>Payment <small>Full amount when you book · no cash</small></div>
+            <div class="pay-methods" id="bkPayMethods" role="radiogroup" aria-label="Payment method">
+              <button type="button" class="pay-m" data-m="card" role="radio" aria-checked="false" hidden>Card<small>Apple Pay · Google Pay</small></button>
+              <button type="button" class="pay-m" data-m="zelle" role="radio" aria-checked="false">Zelle<small>Send to our number</small></button>
+              <button type="button" class="pay-m" data-m="venmo" role="radio" aria-checked="false">Venmo<small>Send to our number</small></button>
+            </div>
+            <div class="pay-panel" id="bkPayCard" hidden>
+              <div class="wallets">
+                <div id="bkApplePay" class="apple-pay-btn" role="button" tabindex="0" aria-label="Pay with Apple Pay" hidden></div>
+                <div id="bkGooglePay" class="gpay-box" hidden></div>
+              </div>
+              <div class="pay-or" id="bkPayOr" hidden><span>or pay by card</span></div>
+              <div id="bkCard" class="card-box"></div>
+              <p class="pay-secure"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Secure payment by Square. Your card details go directly to Square and never reach our website.</p>
+            </div>
+            <div class="pay-panel" id="bkPayManual" hidden>
+              <p>After you book, please send <b class="js-amt">the total</b> via <b class="js-m">Zelle</b> to <b class="js-to">(818) 808-0010</b> <b>within <span class="js-h">2 hours</span></b> and add your booking number as the memo. We'll show you all details on the next screen.</p>
+              <p class="pay-warn">If we don't receive your payment in time, your appointment may be cancelled.</p>
             </div>
           </div>
           <div class="summary" id="bkSummary">
@@ -473,7 +494,7 @@
             </div>
           </div>
           <p class="bk-error" id="bkError" role="alert" hidden></p>
-          <p class="book-note">Bookings go straight into our calendar. You'll get a confirmation email right away and a reminder the day before your visit. Need to cancel or reschedule? Please let us know at least 24 hours in advance.</p>
+          <p class="book-note">Bookings go straight into our calendar. The full amount is paid when you book – by card, Apple Pay, Google Pay, Zelle or Venmo. You'll get a confirmation email right away and a reminder the day before your visit. Need to cancel or reschedule? Please let us know at least 24 hours in advance.</p>
         </div>
 
         <div id="bkDone" class="bk-done" hidden>
@@ -481,6 +502,7 @@
           <span class="sum-k">You're booked</span>
           <h3 id="bkDoneWhen"></h3>
           <p id="bkDoneWhat"></p>
+          <div class="done-pay" id="bkDonePay" hidden></div>
           <p class="bk-done-note">A confirmation email is on its way to <b id="bkDoneEmail"></b>, and you'll get a reminder the day before your visit. Need to cancel or reschedule? Please let us know at least 24 hours in advance at <b>(818) 808-0010</b>.</p>
           <button type="button" class="btn btn-ghost" id="bkAgain">Book another appointment</button>
         </div>

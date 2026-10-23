@@ -313,7 +313,69 @@
     var F={first:$('bkFirst'),last:$('bkLast'),email:$('bkEmail'),phone:$('bkPhone'),note:$('bkNote')}, consent=$('bkConsent');
     Object.keys(F).forEach(function(k){F[k].addEventListener('input',update)});
     consent.addEventListener('change',update);
-    function valid(){return state.sel.length&&state.slot&&F.first.value.trim()&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(F.email.value.trim())&&F.phone.value.replace(/\D/g,'').length>=10&&consent.checked}
+    function detailsOk(){return state.sel.length&&state.slot&&F.first.value.trim()&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(F.email.value.trim())&&F.phone.value.replace(/\D/g,'').length>=10&&consent.checked}
+    function valid(){return detailsOk()&&!!PAY.method&&(PAY.method!=='card'||!!PAY.card)&&!PAY.busy}
+
+    // ── payment ───────────────────────────────────────────────────
+    var PAY={cfg:null,method:null,payments:null,card:null,req:null,apple:null,gpay:null,busy:false};
+    var payBtns=[].slice.call(document.querySelectorAll('#bkPayMethods .pay-m'));
+    function amountStr(){return totals().p.toFixed(2)}
+    function setMethod(m){
+      PAY.method=m;
+      payBtns.forEach(function(b){var on=b.dataset.m===m;b.classList.toggle('on',on);b.setAttribute('aria-checked',on)});
+      $('bkPayCard').hidden=m!=='card'; $('bkPayManual').hidden=!(m==='zelle'||m==='venmo');
+      hideError(); update();
+    }
+    payBtns.forEach(function(b){b.onclick=function(){setMethod(b.dataset.m)}});
+    function manualCfg(m){var c=PAY.cfg&&PAY.cfg.manual||{};return {to:(c[m]&&c[m].to)||'(818) 808-0010',hours:c.hours||2}}
+    function syncPay(){
+      if(PAY.method==='zelle'||PAY.method==='venmo'){
+        var mc=manualCfg(PAY.method), box=$('bkPayManual');
+        box.querySelector('.js-amt').textContent=state.sel.length?money(totals().p):'the total';
+        box.querySelector('.js-m').textContent=PAY.method==='zelle'?'Zelle':'Venmo';
+        box.querySelector('.js-to').textContent=mc.to;
+        box.querySelector('.js-h').textContent=mc.hours+(mc.hours===1?' hour':' hours');
+      }
+      if(PAY.req&&state.sel.length){try{PAY.req.update({total:{amount:amountStr(),label:'Calm Laser Center'}})}catch(e){}}
+      var w=document.querySelector('#bkPayCard .wallets'); if(w) w.classList.toggle('off',!detailsOk());
+    }
+    function loadScript(src){return new Promise(function(res,rej){var sc=document.createElement('script');sc.src=src;sc.onload=res;sc.onerror=rej;document.head.appendChild(sc)})}
+    function initCard(c){
+      var src=c.sandbox?'https://sandbox.web.squarecdn.com/v1/square.js':'https://web.squarecdn.com/v1/square.js';
+      return loadScript(src).then(function(){
+        if(!window.Square) throw new Error('no sdk');
+        PAY.payments=window.Square.payments(c.appId,c.locationId);
+        var style={'.input-container':{borderColor:'#E3D5BC',borderRadius:'14px'},'.input-container.is-focus':{borderColor:'#B8935A'},'.input-container.is-error':{borderColor:'#A4473A'},'input':{color:'#231E17'},'input::placeholder':{color:'#A39886'},'.message-text':{color:'#7A7064'},'.message-icon':{color:'#7A7064'}};
+        return PAY.payments.card({style:style}).catch(function(){return PAY.payments.card()});
+      }).then(function(card){return card.attach('#bkCard').then(function(){PAY.card=card})}).then(function(){
+        var cardBtn=payBtns.filter(function(b){return b.dataset.m==='card'})[0]; cardBtn.hidden=false;
+        if(!PAY.method||PAY.method!=='card') setMethod('card');
+        try{PAY.req=PAY.payments.paymentRequest({countryCode:'US',currencyCode:'USD',total:{amount:state.sel.length?amountStr():'1.00',label:'Calm Laser Center'}})}catch(e){PAY.req=null}
+        if(!PAY.req) return;
+        PAY.payments.applePay(PAY.req).then(function(ap){PAY.apple=ap;var el=$('bkApplePay');el.hidden=false;$('bkPayOr').hidden=false;
+          var go=function(){walletPay(PAY.apple)};el.onclick=go;el.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}}}).catch(function(){});
+        PAY.payments.googlePay(PAY.req).then(function(gp){PAY.gpay=gp;var el=$('bkGooglePay');el.hidden=false;
+          return gp.attach('#bkGooglePay',{buttonColor:'black',buttonSizeMode:'fill',buttonType:'long'}).then(function(){$('bkPayOr').hidden=false;el.onclick=function(){walletPay(PAY.gpay)}})}).catch(function(){$('bkGooglePay').hidden=true});
+      }).catch(function(){
+        PAY.card=null; payBtns.filter(function(b){return b.dataset.m==='card'})[0].hidden=true;
+        if(PAY.method==='card'||!PAY.method) setMethod('zelle');
+      });
+    }
+    function walletPay(method){
+      if(PAY.busy) return;
+      if(!detailsOk()){showError('Please choose your treatments and time, fill in your details and accept the terms first.');return}
+      syncPay(); PAY.busy=true; update();
+      method.tokenize().then(function(r){
+        PAY.busy=false;
+        if(r.status==='OK') submit({method:'card',sourceId:r.token});
+        else{ if(r.status!=='Cancel') showError('The payment was not completed. Please try again.'); update() }
+      }).catch(function(){PAY.busy=false;showError('The payment was not completed. Please try again.');update()});
+    }
+    function verificationDetails(){
+      return {amount:amountStr(),currencyCode:'USD',intent:'CHARGE',customerInitiated:true,sellerKeyedIn:false,
+        billingContact:{givenName:F.first.value.trim(),familyName:F.last.value.trim(),email:F.email.value.trim(),phone:F.phone.value.trim()}};
+    }
+
     function update(){
       var parts=[];
       if(state.sel.length) parts.push(state.sel.map(function(s){return s.base}).join(' + '));
@@ -321,35 +383,85 @@
       if(state.slot){var st=new Date(state.slot.startAt);parts.push(fmtTime(st)+' – '+fmtTime(new Date(st.getTime()+totals().d*60000)))}
       if(state.sel.length){var t=totals();parts.push((t.from?'from ':'')+money(t.p))}
       $('bkSumLine').textContent=parts.length?parts.join(' · '):'Choose your areas, a day and a time.';
-      $('bkSubmit').disabled=!valid();
+      var sb=$('bkSubmit'); sb.disabled=!valid();
+      if(!sb.classList.contains('busy')) sb.firstChild.textContent=submitLabel();
+      syncPay();
+    }
+    function submitLabel(){
+      var amt=state.sel.length?' '+money(totals().p):'';
+      if(PAY.method==='card') return 'Pay'+amt+' & book';
+      if(PAY.method==='zelle') return 'Book & pay with Zelle';
+      if(PAY.method==='venmo') return 'Book & pay with Venmo';
+      return 'Book appointment';
     }
     function showError(t){var e=$('bkError');e.textContent=t;e.hidden=false}
     function hideError(){$('bkError').hidden=true}
     $('bkSubmit').onclick=function(){
-      if(!valid()) return; var btn=this; btn.disabled=true; btn.classList.add('busy'); btn.firstChild.textContent='Booking'; hideError();
-      var slot=state.slot, sel=state.sel.slice(), email=F.email.value.trim();
-      var agreed='Agreed online to Terms of Service & Privacy Policy (incl. 24h cancellation, no refunds, skin reactions).', userNote=F.note.value.trim();
-      api('/book',{startAt:slot.startAt,serviceIds:sel.map(function(s){return s.id}),note:(userNote?userNote+' | ':'')+agreed,
+      if(!valid()) return;
+      if(PAY.method==='card'){
+        var btn=this; PAY.busy=true; btn.disabled=true; btn.classList.add('busy'); btn.firstChild.textContent='Checking card'; hideError();
+        PAY.card.tokenize(verificationDetails()).then(function(r){
+          PAY.busy=false;
+          if(r.status==='OK') return submit({method:'card',sourceId:r.token});
+          btn.classList.remove('busy'); update();
+          var m=(r.errors&&r.errors[0]&&r.errors[0].message)||'';
+          showError(m?'Please check your card details: '+m:'Please check your card details.');
+        }).catch(function(){PAY.busy=false;btn.classList.remove('busy');update();showError('Your card could not be checked. Please try again.')});
+        return;
+      }
+      submit({method:PAY.method});
+    };
+    function submit(payment){
+      var btn=$('bkSubmit'); PAY.busy=true; btn.disabled=true; btn.classList.add('busy'); btn.firstChild.textContent=payment.method==='card'?'Paying':'Booking'; hideError();
+      var slot=state.slot, sel=state.sel.slice(), email=F.email.value.trim(), t0=totals();
+      var agreed='Agreed online to Terms of Service & Privacy Policy (incl. payment terms, 24h cancellation, no refunds, skin reactions).', userNote=F.note.value.trim();
+      api('/book',{startAt:slot.startAt,serviceIds:sel.map(function(s){return s.id}),note:(userNote?userNote+' | ':'')+agreed,payment:payment,
         customer:{firstName:F.first.value.trim(),lastName:F.last.value.trim(),email:email,phone:F.phone.value.trim()}})
       .then(function(j){
-        var st=new Date((j.booking&&j.booking.startAt)||slot.startAt), t=totals();
+        var st=new Date((j.booking&&j.booking.startAt)||slot.startAt);
         $('bkDoneWhen').textContent=fmtDay(laYmd(st))+' at '+fmtTime(st);
-        $('bkDoneWhat').textContent=sel.map(function(s){return s.base}).join(' + ')+' · '+fmtDur(t.d)+' · '+(t.from?'from ':'')+money(t.p);
+        $('bkDoneWhat').textContent=sel.map(function(s){return s.base}).join(' + ')+' · '+fmtDur(t0.d)+' · '+money(t0.p);
         $('bkDoneEmail').textContent=email;
-        apiFlow.hidden=true; done.hidden=false; done.scrollIntoView({behavior:'smooth',block:'center'});
+        renderDonePay(j.payment||{method:payment.method,status:payment.method==='card'?'paid':'pending',amount:t0.p});
+        apiFlow.hidden=true; done.hidden=false; done.scrollIntoView({behavior:'smooth',block:'start'});
+        if(PAY.card){try{PAY.card.clear&&PAY.card.clear()}catch(e){}}
       })
       .catch(function(e){
         if(e.code==='SLOT_TAKEN'){state.slot=null;state.availKey='';loadAvailability()}
-        showError((e.message||'Booking failed.')+(e.code==='SLOT_TAKEN'?'':' You can also call us at (818) 808-0010.'));
+        showError((e.message||'Booking failed.')+(e.code==='SLOT_TAKEN'||/^PAYMENT_DECLINED$/.test(e.code||'')?'':' You can also call us at (818) 808-0010.'));
       })
-      .then(function(){btn.classList.remove('busy');btn.firstChild.textContent='Book appointment';update()});
-    };
+      .then(function(){PAY.busy=false;btn.classList.remove('busy');update()});
+    }
+    function renderDonePay(p){
+      var box=$('bkDonePay'); box.innerHTML=''; box.hidden=false; box.className='done-pay';
+      function el(tag,txt,cls){var e=document.createElement(tag);if(txt!=null)e.textContent=txt;if(cls)e.className=cls;return e}
+      if(p.status==='paid'){
+        box.classList.add('paid');
+        var p1=el('p'); p1.appendChild(el('b','Paid '+money(p.amount))); p1.appendChild(document.createTextNode(' by card – thank you!'));
+        if(p.receiptUrl){p1.appendChild(document.createTextNode(' ')); var a=el('a','View receipt'); a.href=p.receiptUrl; a.target='_blank'; a.rel='noopener'; p1.appendChild(a)}
+        box.appendChild(p1); return;
+      }
+      var label=p.method==='venmo'?'Venmo':'Zelle', mc=manualCfg(p.method), to=p.to||mc.to, hours=p.hours||mc.hours;
+      box.appendChild(el('h4','Next step: send your payment via '+label));
+      function row(k,v,copy){var r=el('div',null,'pay-row');r.appendChild(el('span',k));r.appendChild(el('b',v));
+        if(copy){var c=el('button','Copy','copy-btn');c.type='button';c.onclick=function(){var done=function(){c.textContent='Copied';setTimeout(function(){c.textContent='Copy'},1600)};
+          if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(copy).then(done,function(){});}; r.appendChild(c)}
+        box.appendChild(r)}
+      row('Amount',money(p.amount),String(p.amount));
+      row(label+' to',to,to.replace(/[^\d+@\w.-]/g,''));
+      if(p.ref) row('Memo',p.ref,p.ref);
+      var n=el('p'); n.appendChild(document.createTextNode('Please send the payment '));n.appendChild(el('b','within '+hours+(hours===1?' hour':' hours')));
+      n.appendChild(document.createTextNode(' and add '+(p.ref?'your booking number':'your name and appointment date')+' as the memo. If we don\u2019t receive it in time, your appointment may be cancelled.'));
+      box.appendChild(n);
+    }
     $('bkAgain').onclick=function(){
-      state.sel=[];state.day=null;state.slot=null;state.availKey='';F.note.value='';
+      state.sel=[];state.day=null;state.slot=null;state.availKey='';F.note.value='';$('bkDonePay').hidden=true;
       done.hidden=true;apiFlow.hidden=false;afterSelection();renderCal();
     };
 
     renderCal();
+    api('/config').then(function(c){PAY.cfg=c; if(!PAY.method) setMethod('zelle'); if(c.card&&c.card.appId) return initCard(c.card)})
+      .catch(function(){ if(!PAY.method) setMethod('zelle') });
     api('/services').then(function(j){
       S=j.services||[]; if(!S.length) throw new Error('No services');
       classify(); renderCats(); renderList(); update();
