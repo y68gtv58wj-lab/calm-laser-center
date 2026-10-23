@@ -453,7 +453,7 @@
         var p1=el('p'); p1.appendChild(el('b',(p.balance>0?'Deposit of ':'Paid ')+money(p.amount)+(p.balance>0?' paid':''))); p1.appendChild(document.createTextNode(' by card – thank you!'));
         if(p.receiptUrl){p1.appendChild(document.createTextNode(' ')); var a=el('a','View receipt'); a.href=p.receiptUrl; a.target='_blank'; a.rel='noopener'; p1.appendChild(a)}
         box.appendChild(p1);
-        if(p.balance>0){var p2=el('p');p2.appendChild(document.createTextNode('Remaining '));p2.appendChild(el('b',money(p.balance)));p2.appendChild(document.createTextNode(' is paid at the studio by card, Apple Pay, Google Pay, Zelle or Venmo – no cash.'));box.appendChild(p2)}
+        if(p.balance>0){var p2=el('p');p2.appendChild(document.createTextNode('Remaining '));p2.appendChild(el('b',money(p.balance)));p2.appendChild(document.createTextNode(' is paid at the studio by card, Apple Pay, Google Pay, Zelle, Venmo or cash.'));box.appendChild(p2)}
         var p3=el('p');p3.textContent='Cancel at least 24 hours in advance and your deposit is refunded. For later cancellations or missed appointments the deposit is non-refundable.';box.appendChild(p3);
         return;
       }
@@ -469,7 +469,7 @@
       var n=el('p'); n.appendChild(document.createTextNode('Please send the payment '));n.appendChild(el('b','within '+hours+(hours===1?' hour':' hours')));
       n.appendChild(document.createTextNode(' and add '+(p.ref?'your booking number':'your name and appointment date')+' as the memo. If we don\u2019t receive it in time, your appointment may be cancelled.'));
       box.appendChild(n);
-      if(p.balance>0){var n2=el('p');n2.appendChild(document.createTextNode('Remaining '));n2.appendChild(el('b',money(p.balance)));n2.appendChild(document.createTextNode(' is paid at the studio – no cash. Cancel at least 24 hours in advance and your deposit is refunded; otherwise it is non-refundable.'));box.appendChild(n2)}
+      if(p.balance>0){var n2=el('p');n2.appendChild(document.createTextNode('Remaining '));n2.appendChild(el('b',money(p.balance)));n2.appendChild(document.createTextNode(' is paid at the studio – card, Apple Pay, Google Pay, Zelle, Venmo or cash. Cancel at least 24 hours in advance and your deposit is refunded; otherwise it is non-refundable.'));box.appendChild(n2)}
     }
     $('bkAgain').onclick=function(){
       state.sel=[];state.day=null;state.slot=null;state.availKey='';F.note.value='';$('bkDonePay').hidden=true;
