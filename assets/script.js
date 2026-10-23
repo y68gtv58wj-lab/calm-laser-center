@@ -310,10 +310,10 @@
       });
     }
     // details + submit
-    var F={first:$('bkFirst'),last:$('bkLast'),email:$('bkEmail'),phone:$('bkPhone'),note:$('bkNote')}, consent=$('bkConsent');
+    var F={first:$('bkFirst'),last:$('bkLast'),email:$('bkEmail'),phone:$('bkPhone'),note:$('bkNote')}, consent=$('bkConsent'), waiver=$('bkWaiver');
     Object.keys(F).forEach(function(k){F[k].addEventListener('input',update)});
-    consent.addEventListener('change',update);
-    function detailsOk(){return state.sel.length&&state.slot&&F.first.value.trim()&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(F.email.value.trim())&&F.phone.value.replace(/\D/g,'').length>=10&&consent.checked}
+    consent.addEventListener('change',update); waiver.addEventListener('change',update);
+    function detailsOk(){return state.sel.length&&state.slot&&F.first.value.trim()&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(F.email.value.trim())&&F.phone.value.replace(/\D/g,'').length>=10&&consent.checked&&waiver.checked}
     function valid(){return detailsOk()&&!!PAY.method&&(PAY.method!=='card'||!!PAY.card)&&!PAY.busy}
 
     // ── payment ───────────────────────────────────────────────────
@@ -414,7 +414,7 @@
     function submit(payment){
       var btn=$('bkSubmit'); PAY.busy=true; btn.disabled=true; btn.classList.add('busy'); btn.firstChild.textContent=payment.method==='card'?'Paying':'Booking'; hideError();
       var slot=state.slot, sel=state.sel.slice(), email=F.email.value.trim(), t0=totals();
-      var agreed='Agreed online to Terms of Service & Privacy Policy (incl. payment terms, 24h cancellation, no refunds, skin reactions).', userNote=F.note.value.trim();
+      var agreed='Agreed online to Terms of Service & Privacy Policy (incl. payment terms, 24h cancellation, no refunds) and accepted: treatment risks, informed consent, release of liability & no refunds (Terms §4-6, version 2026-10-23).', userNote=F.note.value.trim();
       api('/book',{startAt:slot.startAt,serviceIds:sel.map(function(s){return s.id}),note:(userNote?userNote+' | ':'')+agreed,payment:payment,
         customer:{firstName:F.first.value.trim(),lastName:F.last.value.trim(),email:email,phone:F.phone.value.trim()}})
       .then(function(j){
