@@ -584,3 +584,9 @@ body.menu-open{overflow:hidden}
 /* Laser device video */
 .tech-visual{aspect-ratio:464/832}
 .tech-visual video{width:100%;height:100%;object-fit:cover;display:block;filter:saturate(.9) sepia(.08) contrast(1.03)}
+
+/* Info card: room for longer labels */
+.hc-list > div{grid-template-columns:104px minmax(0,1fr)}
+@media (max-width:600px){.hc-list > div{grid-template-columns:90px minmax(0,1fr);gap:.7rem}.hc-list dt{letter-spacing:.16em}}
+
+@media (max-width:400px){.hero-card{padding:1.2rem}.hc-list > div{grid-template-columns:78px minmax(0,1fr);gap:.6rem}.hc-list dt{font-size:.6rem;letter-spacing:.12em}.hc-list dd{font-size:.86rem;overflow-wrap:normal;word-break:normal}}
