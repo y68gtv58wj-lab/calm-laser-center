@@ -53,7 +53,7 @@
       return;
     }
     var TZ='America/Los_Angeles';
-    var HOURS={1:[10,18],2:[10,18],3:[10,18],4:[10,18],5:[10,18],6:[10,16]}; // Mon=1 ... Sat=6, Sun closed
+    var HOURS={1:[10,18],2:[10,18],3:[10,18],4:[10,18],5:[10,18],6:[10,18]}; // Mon=1 ... Sat=6, Sun closed
     var SLOT=30, LEAD=60; // start times every 30 min; earliest booking 60 min from now
     var state={areas:[],date:null,time:null};
     function laNow(){var f=new Intl.DateTimeFormat('en-US',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date());
@@ -147,7 +147,7 @@
   // Open / closed status (Los Angeles time)
   (function(){
     var el=document.getElementById('openStatus'); if(!el) return;
-    var H={1:[10,18],2:[10,18],3:[10,18],4:[10,18],5:[10,18],6:[10,16]};
+    var H={1:[10,18],2:[10,18],3:[10,18],4:[10,18],5:[10,18],6:[10,18]};
     var o={}; new Intl.DateTimeFormat('en-US',{timeZone:'America/Los_Angeles',weekday:'short',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date()).forEach(function(x){o[x.type]=x.value});
     var days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], d=days.indexOf(o.weekday), m=(+o.hour)*60+(+o.minute), h=H[d];
     function fmt(x){return (x>12?x-12:x)+(x>=12?'pm':'am')}

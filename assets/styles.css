@@ -576,3 +576,7 @@ body.menu-open{overflow:hidden}
 .dep-cell.on{border-color:var(--gold);background:linear-gradient(180deg,#fff,rgba(230,210,168,.2))}
 .dep-cell.on b{color:var(--gold-deep)}
 @media (max-width:600px){.dep-info{grid-template-columns:1fr 1fr}.dep-cell.on{grid-column:1/-1;order:-1}}
+
+/* Document links */
+.faq-a a,.bk-done-docs a{color:var(--gold-deep);text-decoration:underline;text-underline-offset:3px}
+.bk-done-docs{max-width:520px;margin:1rem auto .2rem;font-size:.95rem;color:var(--ink)}
