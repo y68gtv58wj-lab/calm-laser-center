@@ -603,3 +603,12 @@ body.menu-open{overflow:hidden}
 .story-copy p{margin-bottom:1rem;color:#4A4339;line-height:1.75}
 @media (max-width:980px){.story{grid-template-columns:1fr}.story-facts{grid-template-columns:repeat(3,1fr);order:2}}
 @media (max-width:600px){.story-facts{grid-template-columns:1fr 1fr}.story-facts .sf:first-child{grid-column:1/-1}.sf{padding:1rem 1.1rem}}
+
+/* Our story – text only */
+.story{grid-template-columns:1fr}
+.story-copy{max-width:780px}
+
+.story-copy{max-width:none;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.3fr);gap:clamp(24px,5vw,72px);align-items:start}
+.story-head h3{margin-bottom:0}
+.story-text p{max-width:62ch}
+@media (max-width:980px){.story-copy{grid-template-columns:1fr;gap:0}.story-head h3{margin-bottom:1.2rem}}
